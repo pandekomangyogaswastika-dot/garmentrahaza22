@@ -1037,3 +1037,140 @@ async def list_fg_movements(request: Request, fg_code: Optional[str] = None,
     if direction:  q["direction"] = direction
     movements = await db.rahaza_fg_movements.find(q, {"_id": 0}).sort("timestamp", -1).limit(limit).to_list(None)
     return serialize_doc(movements)
+
+
+# ─── FG Issue (Pengeluaran Produk Jadi Internal) ──────────────────────────────
+
+FG_ISSUE_REASONS = {
+    "surat_jalan_internal": "Surat Jalan Internal",
+    "sample":               "Sample / Contoh",
+    "koreksi_stok":         "Koreksi Stok (Adjustment)",
+    "retur":                "Retur / Rusak",
+    "lainnya":              "Lainnya",
+}
+
+def _fg_uid(): return str(uuid.uuid4())
+def _fg_now(): return datetime.now(timezone.utc)
+
+
+@router.get("/fg-issues")
+async def list_fg_issues(request: Request, limit: int = 50):
+    """List semua FG issues, terbaru dulu."""
+    await require_auth(request)
+    db = get_db()
+    issues = await db.rahaza_fg_issues.find({}, {"_id": 0}).sort("issued_at", -1).limit(limit).to_list(None)
+    return serialize_doc(issues)
+
+
+@router.post("/fg-issue")
+async def create_fg_issue(request: Request):
+    """
+    Kurangi stok FG secara manual.
+    Body: {
+      material_id: str,          -- FG material id
+      qty: int,                  -- qty dikeluarkan (> 0, <= stok tersedia)
+      reason: str,               -- surat_jalan_internal | sample | koreksi_stok | retur | lainnya
+      customer_id: str?,         -- opsional, tujuan pengiriman
+      reference_number: str?,    -- nomor SJ manual / nomor referensi lain
+      notes: str?,
+    }
+    """
+    user = await require_auth(request)
+    db   = get_db()
+    body = await request.json()
+
+    material_id = body.get("material_id")
+    qty         = int(body.get("qty") or 0)
+    reason      = body.get("reason", "lainnya")
+    customer_id = body.get("customer_id")
+    ref_no      = body.get("reference_number", "")
+    notes       = body.get("notes", "")
+
+    if not material_id:
+        raise HTTPException(400, "material_id wajib diisi")
+    if qty <= 0:
+        raise HTTPException(400, "qty harus lebih dari 0")
+    if reason not in FG_ISSUE_REASONS:
+        raise HTTPException(400, f"reason harus salah satu: {list(FG_ISSUE_REASONS.keys())}")
+
+    # Validate material exists and is FG type
+    mat = await db.rahaza_materials.find_one({"id": material_id}, {"_id": 0})
+    if not mat:
+        raise HTTPException(404, "Material tidak ditemukan")
+    if mat.get("type") != "fg":
+        raise HTTPException(400, "Material bukan produk jadi (type=fg)")
+
+    # Check available stock
+    default_loc = await db.rahaza_locations.find_one({"active": True}, {"_id": 0})
+    loc_id = default_loc["id"] if default_loc else None
+    stock_doc = await db.rahaza_material_stock.find_one(
+        {"material_id": material_id, "location_id": loc_id}, {"_id": 0}
+    )
+    available = float(stock_doc.get("qty", 0)) if stock_doc else 0
+    if qty > available:
+        raise HTTPException(400, f"Stok tidak cukup. Tersedia: {available} pcs, diminta: {qty} pcs")
+
+    # Customer snapshot (opsional)
+    customer_name = None
+    if customer_id:
+        cust = await db.rahaza_customers.find_one({"id": customer_id}, {"_id": 0})
+        customer_name = cust.get("name") if cust else None
+
+    # Generate issue number: FGI-YYYYMMDD-XXXXX
+    today_str = _fg_now().strftime("%Y%m%d")
+    count = await db.rahaza_fg_issues.count_documents({"issue_number": {"$regex": f"^FGI-{today_str}"}})
+    issue_number = f"FGI-{today_str}-{count+1:04d}"
+
+    # Deduct stock
+    await db.rahaza_material_stock.update_one(
+        {"material_id": material_id, "location_id": loc_id},
+        {"$inc": {"qty": -qty}, "$set": {"updated_at": _fg_now()}}
+    )
+
+    # Create issue record
+    issue_id = _fg_uid()
+    issue_doc = {
+        "id":               issue_id,
+        "issue_number":     issue_number,
+        "material_id":      material_id,
+        "fg_code":          mat.get("code"),
+        "fg_name":          mat.get("name"),
+        "qty":              qty,
+        "unit":             mat.get("unit", "pcs"),
+        "reason":           reason,
+        "reason_label":     FG_ISSUE_REASONS[reason],
+        "customer_id":      customer_id,
+        "customer_name":    customer_name,
+        "reference_number": ref_no,
+        "notes":            notes,
+        "issued_by":        user.get("name", ""),
+        "issued_by_id":     user.get("sub", ""),
+        "issued_at":        _fg_now(),
+        "stock_before":     available,
+        "stock_after":      available - qty,
+        "location_id":      loc_id,
+    }
+    await db.rahaza_fg_issues.insert_one(issue_doc)
+
+    # Log FG movement
+    await db.rahaza_fg_movements.insert_one({
+        "id":              _fg_uid(),
+        "fg_code":         mat.get("code"),
+        "material_id":     material_id,
+        "fg_issue_id":     issue_id,
+        "direction":       "out",
+        "qty":             qty,
+        "source":          "manual_issue",
+        "reason":          reason,
+        "customer_id":     customer_id,
+        "customer_name":   customer_name,
+        "reference_number": ref_no,
+        "notes":           notes or FG_ISSUE_REASONS[reason],
+        "issued_by":       user.get("name", ""),
+        "timestamp":       _fg_now(),
+    })
+
+    await log_activity(user["id"], user.get("name", ""), "fg_issue_created", "rahaza.fg_issue", 
+                      f"{issue_number}: {mat.get('code')} qty={qty} reason={reason}")
+
+    return serialize_doc({**issue_doc, "ok": True})

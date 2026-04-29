@@ -1,22 +1,26 @@
 [
   {
-    "content": "Fix: Bundle packed → auto update FG stock (via _try_auto_complete_work_order)",
+    "content": "Fix frontend compilation error (react-hot-toast → use-toast)",
     "status": "completed"
   },
   {
-    "content": "Fix: Shipment dispatch → deduct FG stock",
+    "content": "Fix SelectItem empty value error",
     "status": "completed"
   },
   {
-    "content": "Fix: FG Inventory module – tampilkan inflow (from packing) & outflow (from shipment) + Riwayat Pergerakan tab",
+    "content": "Fix log_activity() parameter mismatch bug",
     "status": "completed"
   },
   {
-    "content": "Fix: fg_movements sumber badge (production_packing_event → 'Output Packing')",
+    "content": "Test FG Manual Stock Reduction - full integration",
     "status": "completed"
   },
   {
-    "content": "End-to-end testing flow produksi → FG stock → shipment",
+    "content": "Verify stock deduction & movement logging",
     "status": "completed"
+  },
+  {
+    "content": "Test Warehouse Receiving (GR) Flow - PO → Approve → GR → stock update",
+    "status": "in_progress"
   }
 ]
