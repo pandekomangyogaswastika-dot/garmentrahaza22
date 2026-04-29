@@ -135,7 +135,8 @@ export default function RahazaHRReportsModule({ token }) {
           return;
       }
 
-      const res = await fetch(endpoint, { headers });
+      const h = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
+      const res = await fetch(endpoint, { headers: h });
       if (res.ok) {
         const data = await res.json();
         switch (activeTab) {
@@ -161,7 +162,8 @@ export default function RahazaHRReportsModule({ token }) {
     } finally {
       setLoading(false);
     }
-  }, [activeTab, dateFrom, dateTo, departmentId, locationId, shiftId, employeeId, periodCode, token, headers]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, dateFrom, dateTo, departmentId, locationId, shiftId, employeeId, periodCode, token]);
 
   useEffect(() => {
     fetchReportData();
@@ -196,7 +198,7 @@ export default function RahazaHRReportsModule({ token }) {
           return;
       }
 
-      const res = await fetch(endpoint, { headers });
+      const res = await fetch(endpoint, { headers: { Authorization: `Bearer ${token}` } });
       if (res.ok) {
         const blob = await res.blob();
         const url = window.URL.createObjectURL(blob);
@@ -424,7 +426,7 @@ export default function RahazaHRReportsModule({ token }) {
             />
             <StatCard
               title="Alpha"
-              value={attendanceData.aggregates.total_alpha}
+              value={attendanceData.aggregates.total_alfa}
               subtitle={`Terlambat: ${attendanceData.aggregates.total_terlambat}`}
               icon={TrendingDown}
             />
@@ -435,16 +437,16 @@ export default function RahazaHRReportsModule({ token }) {
             <h3 className="text-lg font-semibold mb-4">Trend Kehadiran Harian</h3>
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={attendanceData.chart_data}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-                <XAxis dataKey="date" stroke="rgba(255,255,255,0.5)" tick={{ fontSize: 11 }} />
-                <YAxis stroke="rgba(255,255,255,0.5)" />
-                <Tooltip contentStyle={{ backgroundColor: 'rgba(0,0,0,0.8)', border: '1px solid rgba(255,255,255,0.2)' }} />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                <XAxis dataKey="date" stroke="var(--muted-foreground)" tick={{ fontSize: 11, fill: 'var(--muted-foreground)' }} />
+                <YAxis stroke="var(--muted-foreground)" tick={{ fill: 'var(--muted-foreground)' }} />
+                <Tooltip contentStyle={{ backgroundColor: 'var(--card)', border: '1px solid var(--border)', color: 'var(--foreground)' }} />
                 <Legend />
-                <Line type="monotone" dataKey="hadir" stroke="#10b981" name="Hadir" strokeWidth={2} />
-                <Line type="monotone" dataKey="izin" stroke="#f59e0b" name="Izin" strokeWidth={2} />
-                <Line type="monotone" dataKey="sakit" stroke="#3b82f6" name="Sakit" strokeWidth={2} />
-                <Line type="monotone" dataKey="cuti" stroke="#8b5cf6" name="Cuti" strokeWidth={2} />
-                <Line type="monotone" dataKey="alpha" stroke="#ef4444" name="Alpha" strokeWidth={2} />
+                <Line type="monotone" dataKey="hadir" stroke="#10b981" name="Hadir" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="izin" stroke="#f59e0b" name="Izin" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="sakit" stroke="#3b82f6" name="Sakit" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="cuti" stroke="#8b5cf6" name="Cuti" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="alfa" stroke="#ef4444" name="Alpha" strokeWidth={2} dot={false} />
               </LineChart>
             </ResponsiveContainer>
           </GlassCard>
@@ -517,10 +519,10 @@ export default function RahazaHRReportsModule({ token }) {
             <h3 className="text-lg font-semibold mb-4">Trend Overtime Harian</h3>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={overtimeData.chart_data}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-                <XAxis dataKey="date" stroke="rgba(255,255,255,0.5)" tick={{ fontSize: 11 }} />
-                <YAxis stroke="rgba(255,255,255,0.5)" label={{ value: 'Hours', angle: -90, position: 'insideLeft' }} />
-                <Tooltip contentStyle={{ backgroundColor: 'rgba(0,0,0,0.8)', border: '1px solid rgba(255,255,255,0.2)' }} />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                <XAxis dataKey="date" stroke="var(--muted-foreground)" tick={{ fontSize: 11, fill: 'var(--muted-foreground)' }} />
+                <YAxis stroke="var(--muted-foreground)" tick={{ fill: 'var(--muted-foreground)' }} label={{ value: 'Hours', angle: -90, position: 'insideLeft', fill: 'var(--muted-foreground)' }} />
+                <Tooltip contentStyle={{ backgroundColor: 'var(--card)', border: '1px solid var(--border)', color: 'var(--foreground)' }} />
                 <Bar dataKey="ot_hours" fill="#3b82f6" name="OT Hours" />
               </BarChart>
             </ResponsiveContainer>
@@ -607,7 +609,7 @@ export default function RahazaHRReportsModule({ token }) {
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip contentStyle={{ backgroundColor: 'rgba(0,0,0,0.8)', border: '1px solid rgba(255,255,255,0.2)' }} />
+                <Tooltip contentStyle={{ backgroundColor: 'var(--card)', border: '1px solid var(--border)', color: 'var(--foreground)' }} formatter={(value) => `Rp ${value.toLocaleString('id-ID')}`} />
               </PieChart>
             </ResponsiveContainer>
           </GlassCard>
@@ -680,10 +682,10 @@ export default function RahazaHRReportsModule({ token }) {
             <h3 className="text-lg font-semibold mb-4">Trend Hires & Resignations (Monthly)</h3>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={turnoverData.chart_data}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-                <XAxis dataKey="month" stroke="rgba(255,255,255,0.5)" />
-                <YAxis stroke="rgba(255,255,255,0.5)" />
-                <Tooltip contentStyle={{ backgroundColor: 'rgba(0,0,0,0.8)', border: '1px solid rgba(255,255,255,0.2)' }} />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                <XAxis dataKey="month" stroke="var(--muted-foreground)" tick={{ fill: 'var(--muted-foreground)' }} />
+                <YAxis stroke="var(--muted-foreground)" tick={{ fill: 'var(--muted-foreground)' }} />
+                <Tooltip contentStyle={{ backgroundColor: 'var(--card)', border: '1px solid var(--border)', color: 'var(--foreground)' }} />
                 <Legend />
                 <Bar dataKey="hires" fill="#10b981" name="New Hires" />
                 <Bar dataKey="resignations" fill="#ef4444" name="Resignations" />
