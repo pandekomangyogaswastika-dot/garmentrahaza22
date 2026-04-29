@@ -8,7 +8,7 @@
     "status": "completed"
   },
   {
-    "content": "Check & fix backend materials endpoint for type filter (yarn/accessory)",
+    "content": "Fix backend materials endpoint for type filter (yarn/accessory)",
     "status": "completed"
   },
   {
@@ -16,11 +16,15 @@
     "status": "completed"
   },
   {
-    "content": "End-to-end testing with testing agent (BOM Phase 5b)",
-    "status": "in_progress"
+    "content": "Fix RequirementsPreviewCard initial qty state (empty → '1000')",
+    "status": "completed"
   },
   {
-    "content": "Fix all bugs found in testing",
-    "status": "pending"
+    "content": "End-to-end testing with testing agent (BOM Phase 5b)",
+    "status": "completed"
+  },
+  {
+    "content": "Phase 5b: All BOM user stories verified and working",
+    "status": "completed"
   }
 ]

@@ -18,7 +18,7 @@ import { toast } from 'sonner';
  * - token: JWT token
  */
 export const RequirementsPreviewCard = ({ bom, token }) => {
-  const [qtyPcs, setQtyPcs] = useState('');
+  const [qtyPcs, setQtyPcs] = useState('1000');
   const [rounding, setRounding] = useState('none');
   const [preview, setPreview] = useState(null);
   const [loading, setLoading] = useState(false);

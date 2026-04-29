@@ -3,7 +3,7 @@
 
 **Created:** 2026-04-29  
 **Last Updated:** 2026-04-29  
-**Status:** 🟢 Phase 4 (Production Automation) — DONE · 🚧 Phase 5b (BOM Configuration UI) — IN PROGRESS  
+**Status:** ✅ Phase 4 (Production Automation) — DONE · ✅ Phase 5b (BOM Configuration UI) — DONE  
 **Goal:**
 - **Produksi:** mempercepat flow eksekusi & administrasi produksi (minim klik, tetap lengkap).
 - **BOM:** menyediakan konfigurasi BOM yang **multi-version + per-size**, bisa **edit versi aktif**, terintegrasi dengan **master material**, serta menyediakan **preview kebutuhan material** untuk quantity tertentu.
@@ -32,11 +32,11 @@
 - ✅ Phase 4: Rework terpisah dari proses utama dan eksekusi tetap stabil.
 - ✅ Click optimizations berjalan pada portal-portal utama (tanpa regresi).
 - ✅ Payslip PDF export tersedia untuk single & bulk.
-- 🎯 Phase 5b:
-  - [ ] Setiap model+size punya daftar versi BOM dan **1 versi aktif**.
-  - [ ] User bisa **edit versi aktif** atau **buat versi baru**.
-  - [ ] User bisa memilih material dari master atau membuat baru inline.
-  - [ ] Preview kebutuhan material untuk X pcs akurat dan cepat dipindai.
+- ✅ Phase 5b:
+  - [x] Setiap model+size punya daftar versi BOM dan **1 versi aktif**.
+  - [x] User bisa **edit versi aktif** atau **buat versi baru**.
+  - [x] User bisa memilih material dari master atau membuat baru inline.
+  - [x] Preview kebutuhan material untuk X pcs akurat dan cepat dipindai.
 
 ---
 
