@@ -24,7 +24,11 @@
     "status": "completed"
   },
   {
+    "content": "Fix WIP events _today bug (NameError)",
+    "status": "completed"
+  },
+  {
     "content": "End-to-end testing semua perbaikan",
-    "status": "in_progress"
+    "status": "completed"
   }
 ]

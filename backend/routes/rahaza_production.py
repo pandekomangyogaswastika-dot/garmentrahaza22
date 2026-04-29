@@ -481,7 +481,7 @@ async def record_wip_event(request: Request):
     event = {
         "id": _uid(),
         "timestamp": _now(),
-        "event_date": _today().isoformat(),                        # FIX: date string for reports
+        "event_date": _now().date().isoformat(),                        # FIX: date string for reports
         "line_id": line_id,
         "process_id": process_id,
         "process_code": proc.get("code") if proc else "",          # FIX: Pareto reports
