@@ -1,0 +1,26 @@
+[
+  {
+    "content": "Fix Select component bug in RahazaBOMModuleV2.jsx (onChange → onValueChange)",
+    "status": "completed"
+  },
+  {
+    "content": "Fix backend route ordering bug: /boms/versions before /boms/{bid}",
+    "status": "completed"
+  },
+  {
+    "content": "Check & fix backend materials endpoint for type filter (yarn/accessory)",
+    "status": "completed"
+  },
+  {
+    "content": "Seed demo data for testing",
+    "status": "completed"
+  },
+  {
+    "content": "End-to-end testing with testing agent (BOM Phase 5b)",
+    "status": "in_progress"
+  },
+  {
+    "content": "Fix all bugs found in testing",
+    "status": "pending"
+  }
+]

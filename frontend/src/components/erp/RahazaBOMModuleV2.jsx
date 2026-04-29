@@ -377,8 +377,8 @@ export default function RahazaBOMModuleV2({ token }) {
         <div className="flex items-center gap-2">
           <Select
             value={selectedModelId}
-            onChange={e => {
-              setSelectedModelId(e.target.value);
+            onValueChange={val => {
+              setSelectedModelId(val);
               setSelectedSizeId('');
               setActiveTab('matrix');
             }}

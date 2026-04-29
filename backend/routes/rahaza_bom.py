@@ -128,6 +128,23 @@ async def list_boms(request: Request, model_id: Optional[str] = None):
     return serialize_doc(rows)
 
 
+@router.get("/boms/versions")
+async def list_bom_versions(request: Request, model_id: str, size_id: str):
+    """List all versions untuk model_id+size_id combination."""
+    await require_auth(request)
+    db = get_db()
+    if not model_id or not size_id:
+        raise HTTPException(400, "model_id dan size_id wajib diisi")
+    # Get all versions (including inactive), sorted by version desc
+    versions = await db.rahaza_boms.find(
+        {"model_id": model_id, "size_id": size_id, "active": True},
+        {"_id": 0}
+    ).sort("version", -1).to_list(None)
+    for v in versions:
+        await _enrich_bom(db, v)
+    return serialize_doc(versions)
+
+
 @router.get("/boms/{bid}")
 async def get_bom(bid: str, request: Request):
     await require_auth(request)
@@ -173,23 +190,6 @@ async def get_model_bom(model_id: str, request: Request):
     }
 
 
-@router.get("/boms/versions")
-async def list_bom_versions(request: Request, model_id: str, size_id: str):
-    """List all versions untuk model_id+size_id combination."""
-    await require_auth(request)
-    db = get_db()
-    if not model_id or not size_id:
-        raise HTTPException(400, "model_id dan size_id wajib diisi")
-    # Get all versions (including inactive), sorted by version desc
-    versions = await db.rahaza_boms.find(
-        {"model_id": model_id, "size_id": size_id, "active": True},
-        {"_id": 0}
-    ).sort("version", -1).to_list(None)
-    for v in versions:
-        await _enrich_bom(db, v)
-    return serialize_doc(versions)
-
-
 @router.post("/boms")
 async def create_bom(request: Request):
     """Create new BOM version."""
@@ -217,7 +217,14 @@ async def create_bom(request: Request):
     ).sort("version", -1).limit(1).to_list(None)
     new_version = 1
     if existing_versions:
-        new_version = (existing_versions[0].get("version") or 0) + 1
+        existing_version = existing_versions[0].get("version") or 0
+        # Handle both string and int versions
+        if isinstance(existing_version, str):
+            try:
+                existing_version = int(existing_version)
+            except ValueError:
+                existing_version = 0
+        new_version = existing_version + 1
     
     # Check if create as active (default true for first version, false for subsequent)
     is_active = body.get("is_active", new_version == 1)
@@ -434,7 +441,14 @@ async def copy_bom_to_sizes(bid: str, request: Request):
                 ).sort("version", -1).limit(1).to_list(None)
                 new_version = 1
                 if existing_versions:
-                    new_version = (existing_versions[0].get("version") or 0) + 1
+                    existing_version = existing_versions[0].get("version") or 0
+                    # Handle both string and int versions
+                    if isinstance(existing_version, str):
+                        try:
+                            existing_version = int(existing_version)
+                        except ValueError:
+                            existing_version = 0
+                    new_version = existing_version + 1
                 
                 doc = {
                     "id": _uid(),
