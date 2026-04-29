@@ -570,6 +570,7 @@ async def _try_auto_complete_work_order(db, work_order_id: str):
     P1.2: Auto-complete Work Order if all conditions met:
     - All bundles in WO are 'packed' or 'shipped' or 'closed'
     - Sum of bundle qty >= WO qty
+    Also auto-updates FG material_stock when WO is completed.
     """
     if not work_order_id:
         return False
@@ -612,6 +613,58 @@ async def _try_auto_complete_work_order(db, work_order_id: str):
         }
     )
     logger.info(f"Auto-completed Work Order {wo.get('order_id')} (all bundles packed, {total_qty}/{wo_qty} pcs)")
+
+    # ─── Auto-update FG inventory ─────────────────────────────────────────────
+    model_id = wo.get("model_id")
+    size_id  = wo.get("size_id")
+    if model_id and size_id and total_qty > 0:
+        model_doc = await db.rahaza_models.find_one({"id": model_id}, {"_id": 0})
+        size_doc  = await db.rahaza_sizes.find_one({"id": size_id}, {"_id": 0})
+        if model_doc and size_doc:
+            fg_code = f"FG-{model_doc['code']}-{size_doc['code']}"
+            fg_name = f"{model_doc['name']} [{size_doc['code']}]"
+            # Ensure FG material master exists
+            existing = await db.rahaza_materials.find_one({"code": fg_code}, {"_id": 0})
+            if not existing:
+                mat_id = _uid()
+                await db.rahaza_materials.insert_one({
+                    "id": mat_id, "code": fg_code, "name": fg_name,
+                    "type": "fg", "unit": "pcs", "active": True,
+                    "model_id": model_id, "size_id": size_id,
+                    "notes": "Auto-created dari WO selesai",
+                })
+            else:
+                mat_id = existing["id"]
+            # Get default location
+            default_loc = await db.rahaza_locations.find_one({"active": True}, {"_id": 0})
+            loc_id = default_loc["id"] if default_loc else None
+            # Upsert stock — add total_qty
+            await db.rahaza_material_stock.update_one(
+                {"material_id": mat_id, "location_id": loc_id},
+                {
+                    "$inc": {"qty": total_qty},
+                    "$setOnInsert": {"id": _uid(), "material_id": mat_id, "location_id": loc_id},
+                    "$set": {"updated_at": datetime.now(timezone.utc)},
+                },
+                upsert=True
+            )
+            # Log a FG stock movement for traceability
+            is_internal = wo.get("is_internal", False)
+            await db.rahaza_fg_movements.insert_one({
+                "id": _uid(),
+                "fg_code": fg_code,
+                "material_id": mat_id,
+                "work_order_id": work_order_id,
+                "wo_number": wo.get("wo_number", ""),
+                "direction": "in",                        # in = masuk dari produksi
+                "qty": total_qty,
+                "source": "production_internal" if is_internal else "production_customer_po",
+                "order_id": wo.get("order_id"),
+                "notes": f"WO selesai: {'Produksi Internal' if is_internal else 'Customer PO'}",
+                "timestamp": datetime.now(timezone.utc),
+            })
+            logger.info(f"FG stock +{total_qty} pcs for {fg_code} (WO {wo.get('wo_number')})")
+    # ─────────────────────────────────────────────────────────────────────────
     return True
 
 

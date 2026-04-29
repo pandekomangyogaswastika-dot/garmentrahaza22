@@ -1,34 +1,22 @@
 [
   {
-    "content": "Fix Line Board: tampilkan lines + output meskipun assignment kosong",
+    "content": "Fix: Bundle packed → auto update FG stock (via _try_auto_complete_work_order)",
     "status": "completed"
   },
   {
-    "content": "Fix Event Terbaru: enrich dengan WO number, model name, line code + update frontend",
+    "content": "Fix: Shipment dispatch → deduct FG stock",
     "status": "completed"
   },
   {
-    "content": "Remove yarn_kg_per_pcs dari form Master Model (keep in DB, hide in UI)",
+    "content": "Fix: FG Inventory module – tampilkan inflow (from packing) & outflow (from shipment) + Riwayat Pergerakan tab",
     "status": "completed"
   },
   {
-    "content": "PO form: tampilkan unit label auto-fill dari material di sebelah qty input",
+    "content": "Fix: fg_movements sumber badge (production_packing_event → 'Output Packing')",
     "status": "completed"
   },
   {
-    "content": "Produksi Packing → FG Inventory: auto-upsert ke material_stock saat packing output confirmed",
-    "status": "completed"
-  },
-  {
-    "content": "Gudang Portal: pisah menu Inventory Bahan & Inventory Produk Jadi (FG)",
-    "status": "completed"
-  },
-  {
-    "content": "Fix WIP events _today bug (NameError)",
-    "status": "completed"
-  },
-  {
-    "content": "End-to-end testing semua perbaikan",
+    "content": "End-to-end testing flow produksi → FG stock → shipment",
     "status": "completed"
   }
 ]

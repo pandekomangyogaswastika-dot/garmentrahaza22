@@ -259,6 +259,58 @@ async def change_status(sid: str, body: dict, request: Request):
             log.exception("COGS shipment auto-post failed")
             posting_result = {"ok": False, "error": str(e)}
 
+        # ─── FG Stock Deduction saat dispatch ─────────────────────────────
+        try:
+            for item in shp.get("items", []):
+                wo_id  = item.get("wo_id")
+                qty_shipped = int(item.get("qty", 0))
+                if not wo_id or qty_shipped <= 0:
+                    continue
+                wo_doc = await db.rahaza_work_orders.find_one({"id": wo_id}, {"_id": 0})
+                if not wo_doc:
+                    continue
+                m_id = wo_doc.get("model_id")
+                s_id = wo_doc.get("size_id")
+                if not m_id or not s_id:
+                    continue
+                model_doc = await db.rahaza_models.find_one({"id": m_id}, {"_id": 0})
+                size_doc  = await db.rahaza_sizes.find_one({"id": s_id}, {"_id": 0})
+                if not model_doc or not size_doc:
+                    continue
+                fg_code = f"FG-{model_doc['code']}-{size_doc['code']}"
+                mat_doc = await db.rahaza_materials.find_one({"code": fg_code}, {"_id": 0})
+                if not mat_doc:
+                    continue
+                # Deduct FG stock (never below 0)
+                default_loc = await db.rahaza_locations.find_one({"active": True}, {"_id": 0})
+                loc_id = default_loc["id"] if default_loc else None
+                await db.rahaza_material_stock.update_one(
+                    {"material_id": mat_doc["id"], "location_id": loc_id},
+                    {
+                        "$inc": {"qty": -qty_shipped},
+                        "$set": {"updated_at": _now()},
+                    }
+                )
+                # Log outbound FG movement
+                await db.rahaza_fg_movements.insert_one({
+                    "id": str(__import__("uuid").uuid4()),
+                    "fg_code": fg_code,
+                    "material_id": mat_doc["id"],
+                    "shipment_id": sid,
+                    "shipment_number": shp.get("shipment_number", ""),
+                    "work_order_id": wo_id,
+                    "wo_number": wo_doc.get("wo_number", ""),
+                    "direction": "out",
+                    "qty": qty_shipped,
+                    "source": "shipment_dispatch",
+                    "order_id": shp.get("order_id"),
+                    "notes": f"Dikirim via {shp.get('shipment_number','')}",
+                    "timestamp": _now(),
+                })
+                log.info(f"FG stock -{qty_shipped} pcs for {fg_code} (Shipment {shp.get('shipment_number')})")
+        except Exception as e:
+            log.warning(f"FG stock deduction on dispatch failed: {e}")
+
     # Notify
     await publish_notification(
         db,

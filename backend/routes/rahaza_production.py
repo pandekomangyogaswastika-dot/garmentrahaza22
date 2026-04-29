@@ -533,6 +533,19 @@ async def record_wip_event(request: Request):
                      "$set": {"updated_at": _now()}},
                     upsert=True
                 )
+                # Log inbound FG movement
+                await db.rahaza_fg_movements.insert_one({
+                    "id": _uid(),
+                    "fg_code": fg_code,
+                    "material_id": mat_id,
+                    "work_order_id": body.get("work_order_id"),
+                    "wo_number": None,
+                    "direction": "in",
+                    "qty": qty,
+                    "source": "production_packing_event",
+                    "notes": f"Output Packing: {qty} pcs via wip event",
+                    "timestamp": _now(),
+                })
     # ────────────────────────────────────────────────────────────────────────
 
     return serialize_doc(event)

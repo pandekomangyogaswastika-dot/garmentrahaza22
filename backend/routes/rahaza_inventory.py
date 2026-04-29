@@ -1022,3 +1022,18 @@ async def delete_mi(mid: str, request: Request):
         raise HTTPException(400, "Hanya MI Draft/Cancelled yang bisa dihapus.")
     await db.rahaza_material_issues.delete_one({"id": mid})
     return {"status": "deleted"}
+
+
+# ─── FG Movements ─────────────────────────────────────────────────────────────
+
+@router.get("/fg-movements")
+async def list_fg_movements(request: Request, fg_code: Optional[str] = None,
+                            direction: Optional[str] = None, limit: int = 50):
+    """List FG stock movements (in from production, out from shipment dispatch)."""
+    await require_auth(request)
+    db = get_db()
+    q: dict = {}
+    if fg_code:    q["fg_code"] = fg_code
+    if direction:  q["direction"] = direction
+    movements = await db.rahaza_fg_movements.find(q, {"_id": 0}).sort("timestamp", -1).limit(limit).to_list(None)
+    return serialize_doc(movements)
