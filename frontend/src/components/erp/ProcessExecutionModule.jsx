@@ -347,9 +347,20 @@ export default function ProcessExecutionModule({ token, moduleId, userRole }) {
             <div className="text-center text-xs text-muted-foreground py-6">Belum ada event.</div>
           ) : (
             <table className="w-full text-xs">
+              <thead>
+                <tr className="text-[10px] text-muted-foreground border-b border-[var(--glass-border)] bg-[var(--glass-bg)]">
+                  <th className="px-3 py-1.5 text-left font-medium">Waktu</th>
+                  <th className="px-3 py-1.5 text-left font-medium">Tipe</th>
+                  <th className="px-3 py-1.5 text-left font-medium">Line</th>
+                  <th className="px-3 py-1.5 text-left font-medium">Model / WO</th>
+                  <th className="px-3 py-1.5 text-right font-medium">Qty</th>
+                  <th className="px-3 py-1.5 text-left font-medium">Operator</th>
+                  <th className="px-3 py-1.5 text-left font-medium">Catatan</th>
+                </tr>
+              </thead>
               <tbody>
                 {board.recent_events.map(ev => (
-                  <tr key={ev.id} className="border-t border-[var(--glass-border)]">
+                  <tr key={ev.id} className="border-t border-[var(--glass-border)] hover:bg-[var(--glass-bg)] transition-colors">
                     <td className="px-3 py-1.5 text-muted-foreground whitespace-nowrap">
                       {new Date(ev.timestamp).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
                     </td>
@@ -360,9 +371,24 @@ export default function ProcessExecutionModule({ token, moduleId, userRole }) {
                       {ev.event_type === 'rework_fail' && <span className="inline-flex items-center gap-1 text-red-300"><XCircle className="w-3 h-3" /> Scrap</span>}
                       {ev.event_type === 'output'      && <span className="inline-flex items-center gap-1 text-foreground/80"><Plus className="w-3 h-3" /> Output</span>}
                     </td>
-                    <td className="px-3 py-1.5 font-semibold text-foreground">{ev.qty} pcs</td>
-                    <td className="px-3 py-1.5 text-muted-foreground truncate">{ev.created_by_name || '—'}</td>
-                    <td className="px-3 py-1.5 text-muted-foreground truncate max-w-[160px]">{ev.notes || ''}</td>
+                    <td className="px-3 py-1.5 text-muted-foreground whitespace-nowrap">
+                      {ev.line_code || '—'}
+                    </td>
+                    <td className="px-3 py-1.5 max-w-[160px]">
+                      {ev.model_code ? (
+                        <div>
+                          <span className="text-foreground font-medium">{ev.model_code}</span>
+                          {ev.wo_number && <span className="text-muted-foreground ml-1.5 text-[10px]">WO: {ev.wo_number}</span>}
+                        </div>
+                      ) : ev.wo_number ? (
+                        <span className="text-muted-foreground text-[10px]">WO: {ev.wo_number}</span>
+                      ) : (
+                        <span className="text-muted-foreground/50">—</span>
+                      )}
+                    </td>
+                    <td className="px-3 py-1.5 font-semibold text-foreground text-right">{ev.qty} pcs</td>
+                    <td className="px-3 py-1.5 text-muted-foreground truncate max-w-[100px]">{ev.created_by_name || '—'}</td>
+                    <td className="px-3 py-1.5 text-muted-foreground truncate max-w-[140px]">{ev.notes || ''}</td>
                   </tr>
                 ))}
               </tbody>

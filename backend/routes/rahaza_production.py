@@ -498,6 +498,43 @@ async def record_wip_event(request: Request):
         "created_by_name": user.get("name", ""),
     }
     await db.rahaza_wip_events.insert_one(event)
+
+    # ─── PACKING output → auto-upsert FG inventory ─────────────────────────
+    if proc and proc.get("code") == "PACKING" and event["event_type"] == "output":
+        model_id = body.get("model_id")
+        size_id  = body.get("size_id")
+        if model_id and size_id:
+            model_doc = await db.rahaza_models.find_one({"id": model_id}, {"_id": 0})
+            size_doc  = await db.rahaza_sizes.find_one({"id": size_id}, {"_id": 0})
+            if model_doc and size_doc:
+                fg_code = f"FG-{model_doc['code']}-{size_doc['code']}"
+                fg_name = f"{model_doc['name']} [{size_doc['code']}]"
+                # Ensure material master record exists for this FG
+                existing = await db.rahaza_materials.find_one({"code": fg_code}, {"_id": 0})
+                if not existing:
+                    mat_id = _uid()
+                    await db.rahaza_materials.insert_one({
+                        "id": mat_id, "code": fg_code, "name": fg_name,
+                        "type": "fg", "unit": "pcs", "active": True,
+                        "model_id": model_id, "size_id": size_id,
+                        "notes": "Auto-created dari output Packing",
+                        "min_stock_qty": 0,
+                    })
+                else:
+                    mat_id = existing["id"]
+                # Get a default location (first active one)
+                default_loc = await db.rahaza_locations.find_one({"active": True}, {"_id": 0})
+                loc_id = default_loc["id"] if default_loc else None
+                # Upsert stock
+                await db.rahaza_material_stock.update_one(
+                    {"material_id": mat_id, "location_id": loc_id},
+                    {"$inc": {"qty": qty},
+                     "$setOnInsert": {"id": _uid(), "material_id": mat_id, "location_id": loc_id},
+                     "$set": {"updated_at": _now()}},
+                    upsert=True
+                )
+    # ────────────────────────────────────────────────────────────────────────
+
     return serialize_doc(event)
 
 

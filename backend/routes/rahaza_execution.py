@@ -604,9 +604,35 @@ async def flow_summary(request: Request):
 # ─── Recent events per proses ──────────────────────────────────────────────────
 @router.get("/execution/recent-events")
 async def recent_events(request: Request, process_id: Optional[str] = None, limit: int = 30):
+    """Return recent events enriched with model_name, wo_number, line_name, line_code."""
     await require_auth(request)
     db = get_db()
     q = {}
-    if process_id: q["process_id"] = process_id
+    if process_id:
+        q["process_id"] = process_id
     evs = await db.rahaza_wip_events.find(q, {"_id": 0}).sort("timestamp", -1).limit(int(limit)).to_list(None)
-    return serialize_doc(evs)
+
+    # Gather IDs for enrichment
+    model_ids = {e["model_id"] for e in evs if e.get("model_id")}
+    wo_ids    = {e["work_order_id"] for e in evs if e.get("work_order_id")}
+    line_ids  = {e["line_id"] for e in evs if e.get("line_id")}
+
+    models = {d["id"]: d for d in await db.rahaza_models.find({"id": {"$in": list(model_ids)}}, {"_id": 0}).to_list(None)} if model_ids else {}
+    wos    = {d["id"]: d for d in await db.rahaza_work_orders.find({"id": {"$in": list(wo_ids)}}, {"_id": 0}).to_list(None)} if wo_ids else {}
+    lines  = {d["id"]: d for d in await db.rahaza_lines.find({"id": {"$in": list(line_ids)}}, {"_id": 0}).to_list(None)} if line_ids else {}
+
+    enriched = []
+    for e in evs:
+        ev = dict(e)
+        m   = models.get(ev.get("model_id"))
+        wo  = wos.get(ev.get("work_order_id"))
+        ln  = lines.get(ev.get("line_id"))
+        ev["model_code"]  = m.get("code")  if m  else None
+        ev["model_name"]  = m.get("name")  if m  else None
+        ev["wo_number"]   = wo.get("wo_number") if wo else None
+        ev["wo_id"]       = wo.get("id")        if wo else None
+        ev["line_code"]   = ln.get("code")  if ln else None
+        ev["line_name"]   = ln.get("name")  if ln else None
+        enriched.append(ev)
+
+    return serialize_doc(enriched)

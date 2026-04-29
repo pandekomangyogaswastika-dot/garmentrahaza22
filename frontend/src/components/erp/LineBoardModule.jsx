@@ -186,19 +186,39 @@ export default function LineBoardModule({ token, user, onNavigate }) {
                           </div>
                         </div>
                       ) : (
-                        <div className="flex items-center justify-between gap-2">
-                          <div className="flex items-center gap-1.5 text-[10px] text-amber-300 py-1">
-                            <AlertCircle className="w-3 h-3" />
-                            <span>Belum ada assignment hari ini</span>
-                          </div>
-                          {onNavigate && (
-                            <button
-                              onClick={() => onNavigate('prod-assignments')}
-                              className="text-[10px] underline text-primary hover:text-primary/80"
-                              data-testid={`lb-assign-${line.line_code}`}
-                            >
-                              Assign →
-                            </button>
+                        <div className="space-y-1.5">
+                          {line.output_today > 0 ? (
+                            <div className="flex items-center justify-between gap-2">
+                              <div className="flex items-center gap-1.5 text-[10px] text-emerald-300 py-1">
+                                <TrendingUp className="w-3 h-3" />
+                                <span>Ada output tanpa assignment formal</span>
+                              </div>
+                              {onNavigate && (
+                                <button
+                                  onClick={() => onNavigate('prod-assignments')}
+                                  className="text-[10px] underline text-primary hover:text-primary/80"
+                                  data-testid={`lb-assign-${line.line_code}`}
+                                >
+                                  Assign →
+                                </button>
+                              )}
+                            </div>
+                          ) : (
+                            <div className="flex items-center justify-between gap-2">
+                              <div className="flex items-center gap-1.5 text-[10px] text-amber-300 py-1">
+                                <AlertCircle className="w-3 h-3" />
+                                <span>Belum ada assignment hari ini</span>
+                              </div>
+                              {onNavigate && (
+                                <button
+                                  onClick={() => onNavigate('prod-assignments')}
+                                  className="text-[10px] underline text-primary hover:text-primary/80"
+                                  data-testid={`lb-assign-${line.line_code}`}
+                                >
+                                  Assign →
+                                </button>
+                              )}
+                            </div>
                           )}
                         </div>
                       )}

@@ -292,12 +292,6 @@ export default function RahazaModelsModule({ token }) {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-xs text-muted-foreground">Benang per pcs (Kg)</label>
-                <GlassInput type="number" step="0.001" value={form.yarn_kg_per_pcs}
-                  onChange={e => setForm({ ...form, yarn_kg_per_pcs: parseFloat(e.target.value) || 0 })}
-                  data-testid="model-form-yarn-kg" />
-              </div>
-              <div>
                 <label className="text-xs text-muted-foreground">Ukuran Bundle (pcs)</label>
                 <GlassInput type="number" value={form.bundle_size}
                   onChange={e => setForm({ ...form, bundle_size: parseInt(e.target.value) || 30 })}

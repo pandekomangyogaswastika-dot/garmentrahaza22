@@ -498,7 +498,12 @@ export default function PurchaseOrderModule({ token, onNavigate }) {
                     {idx === 0 && <label className="block text-xs font-medium mb-1">Material</label>}
                     <select
                       value={item.material_id}
-                      onChange={e => updateItem(item.id, 'material_id', e.target.value)}
+                      onChange={e => {
+                        const matId = e.target.value;
+                        const mat = materials.find(m => m.id === matId);
+                        updateItem(item.id, 'material_id', matId);
+                        if (mat) updateItem(item.id, 'unit', mat.unit || 'pcs');
+                      }}
                       className="w-full h-9 px-2 rounded-lg border border-[var(--glass-border)] bg-[var(--input-surface)] text-sm text-foreground"
                       data-testid={`po-form-item-material-${idx}`}
                     >
@@ -510,15 +515,22 @@ export default function PurchaseOrderModule({ token, onNavigate }) {
                   </div>
                   <div className="col-span-2">
                     {idx === 0 && <label className="block text-xs font-medium mb-1">Qty</label>}
-                    <GlassInput
-                      type="number"
-                      step="0.01"
-                      value={item.qty_ordered}
-                      onChange={e => updateItem(item.id, 'qty_ordered', parseFloat(e.target.value) || 0)}
-                      placeholder="0"
-                      className="text-center"
-                      data-testid={`po-form-item-qty-${idx}`}
-                    />
+                    <div className="flex items-center gap-1">
+                      <GlassInput
+                        type="number"
+                        step="0.01"
+                        value={item.qty_ordered}
+                        onChange={e => updateItem(item.id, 'qty_ordered', parseFloat(e.target.value) || 0)}
+                        placeholder="0"
+                        className="text-center"
+                        data-testid={`po-form-item-qty-${idx}`}
+                      />
+                      {item.unit && (
+                        <span className="text-xs text-muted-foreground whitespace-nowrap font-medium px-1 min-w-[28px]">
+                          {item.unit}
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <div className="col-span-2">
                     {idx === 0 && <label className="block text-xs font-medium mb-1">Harga</label>}

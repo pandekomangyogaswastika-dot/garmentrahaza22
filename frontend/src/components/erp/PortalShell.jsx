@@ -227,12 +227,17 @@ const PORTAL_NAV = {
         ]
       },
       {
-        label: 'INVENTORI',
+        label: 'INVENTORI BAHAN & AKSESORIS',
         items: [
           { id: 'wh-materials',      label: 'Master Material',          icon: Boxes },
           { id: 'wh-stock',          label: 'Stok & Pergerakan',        icon: Archive },
-          // Phase 2: Rename 'Material Issue (WO)' → 'Material Issue (Single)'
           { id: 'wh-material-issue', label: 'Material Issue (Single)', icon: PackageMinus },
+        ]
+      },
+      {
+        label: 'INVENTORI PRODUK JADI',
+        items: [
+          { id: 'wh-fg', label: 'Inventory Produk Jadi', icon: Archive },
         ]
       },
       {

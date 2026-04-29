@@ -1,30 +1,30 @@
 [
   {
-    "content": "Fix Select component bug in RahazaBOMModuleV2.jsx (onChange → onValueChange)",
+    "content": "Fix Line Board: tampilkan lines + output meskipun assignment kosong",
     "status": "completed"
   },
   {
-    "content": "Fix backend route ordering bug: /boms/versions before /boms/{bid}",
+    "content": "Fix Event Terbaru: enrich dengan WO number, model name, line code + update frontend",
     "status": "completed"
   },
   {
-    "content": "Fix backend materials endpoint for type filter (yarn/accessory)",
+    "content": "Remove yarn_kg_per_pcs dari form Master Model (keep in DB, hide in UI)",
     "status": "completed"
   },
   {
-    "content": "Seed demo data for testing",
+    "content": "PO form: tampilkan unit label auto-fill dari material di sebelah qty input",
     "status": "completed"
   },
   {
-    "content": "Fix RequirementsPreviewCard initial qty state (empty → '1000')",
+    "content": "Produksi Packing → FG Inventory: auto-upsert ke material_stock saat packing output confirmed",
     "status": "completed"
   },
   {
-    "content": "End-to-end testing with testing agent (BOM Phase 5b)",
+    "content": "Gudang Portal: pisah menu Inventory Bahan & Inventory Produk Jadi (FG)",
     "status": "completed"
   },
   {
-    "content": "Phase 5b: All BOM user stories verified and working",
-    "status": "completed"
+    "content": "End-to-end testing semua perbaikan",
+    "status": "in_progress"
   }
 ]

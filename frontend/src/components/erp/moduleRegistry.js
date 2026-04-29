@@ -166,6 +166,9 @@ const RahazaAQLCalculatorModule = lazy(() => import('./RahazaAQLCalculatorModule
 const RahazaModelsAndBOMModule  = lazy(() => import('./RahazaModelsAndBOMModule'));
 const IntegrationSettingsModule = lazy(() => import('./IntegrationSettingsModule'));
 
+// FG Inventory (Produk Jadi)
+const RahazaFGInventoryModule   = lazy(() => import('./RahazaFGInventoryModule'));
+
 // Production Automation (Phase 4)
 const ProductionWizardModule = lazy(() => import('./ProductionWizardModule'));
 
@@ -248,6 +251,8 @@ export const MODULE_REGISTRY = {
   'wh-materials':      RahazaMaterialsModule,
   'wh-stock':          RahazaStockModule,
   'wh-material-issue': RahazaMaterialIssueModule,
+  // FG Inventory
+  'wh-fg':             RahazaFGInventoryModule,
 
   // HR · Attendance (Fase 8a)
   'hr-attendance':     RahazaAttendanceModule,
